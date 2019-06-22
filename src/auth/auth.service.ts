@@ -6,7 +6,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { LoginDTO, JWTdecoded } from './auth.dto';
 import { Admin } from '../entities/Admin.entity';
 import { Faculty } from '../entities/Faculty.entity';
-import { decode } from 'punycode';
 
 export class AuthService {
   constructor(
@@ -38,7 +37,7 @@ export class AuthService {
 
   async facultyLogin({ username, password, admin }: LoginDTO): Promise<string> {
 		const user = await this.facultyRepo.findOne({
-      name: username,
+      id: username,
       password
     });
 		if (!user) 

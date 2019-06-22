@@ -4,7 +4,6 @@ export class LoginDTO {
 	readonly password: string
 }
 
-
 export class JWTdecoded {
 	readonly admin: boolean
 	readonly username: string

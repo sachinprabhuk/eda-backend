@@ -3,7 +3,8 @@ import { Repository } from 'typeorm';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 
-import { LoginDTO, JWTdecoded } from './auth.dto';
+import { LoginDTO } from './auth.dto';
+import { JWTdecoded } from '../shared/index.dto';
 import { Admin } from '../entities/Admin.entity';
 import { Faculty } from '../entities/Faculty.entity';
 

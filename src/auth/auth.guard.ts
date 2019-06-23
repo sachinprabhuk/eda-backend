@@ -1,7 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import * as jwt from 'jsonwebtoken';
 import { Request } from 'express';
-import { JWTdecoded } from './auth.dto';
+import { JWTdecoded } from '../shared/index.dto';
 
 const authGuardGenerator = (forAdmin: boolean): any => {
 

@@ -6,6 +6,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
+import { FacultyModule } from './faculty/faculty.module';
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { AdminModule } from './admin/admin.module';
       synchronize: true,
     }),
     AuthModule,
-    AdminModule
+    AdminModule,
+    FacultyModule
   ],
   controllers: [AppController],
   providers: [AppService],

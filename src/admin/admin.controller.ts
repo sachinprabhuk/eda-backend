@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards, Body, Post } from "@nestjs/common";
+import { Controller, Get, UseGuards, Body, Post, Delete } from "@nestjs/common";
 
 import { AdminAuthGuard } from "../auth/auth.guard";
 import { AdminService } from "./admin.service";
@@ -33,4 +33,15 @@ export class AdminController {
 	getSlots(): Promise<Slot[]> {
 		return this.adminService.getSlots();
 	}
+
+	@Delete("faculty")
+	async deleteFaculty(@Body('facultyID') facID: string): Promise<any> {
+		return this.adminService.deleteFaculty(facID);
+	}
+
+	@Delete("slot")
+	async deleteSlot(@Body('slotID') slotID: string): Promise<any> {
+		return slotID;
+	}
+
 }

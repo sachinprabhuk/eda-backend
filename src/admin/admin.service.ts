@@ -1,11 +1,12 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, getManager } from 'typeorm';
 import { HttpException, HttpStatus } from '@nestjs/common';
 
 import { Faculty } from '../entities/Faculty.entity';
 import { Admin } from '../entities/Admin.entity';
 import { Slot } from '../entities/Slot.entity';
 import { SlotDTO, FacultyDTO } from '../shared/index.dto';
+import { CustomError, CUSTOM_ERROR_NAME } from '../shared/Custom.Error';
 
 export class AdminService {
   constructor(
@@ -58,10 +59,7 @@ export class AdminService {
       await this.slotRepo.save(slot);
       return slot;
     } catch (e) {
-      throw new HttpException(
-        e,
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+      throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 
@@ -87,12 +85,41 @@ export class AdminService {
       return faculty;
     } catch (e) {
       throw new HttpException(
-        e,
+        'Error while adding new faculty!',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
+  async deleteFaculty(facID: string): Promise<Faculty> {
+    try {
+      const faculty = await this.facultyRepo.findOne({
+        where: { id: facID },
+        relations: ['selections'],
+      });
+      if (!faculty) throw new CustomError('Invalid faculty id');
+
+      await getManager().transaction(async entityManager => {
+        await entityManager.remove(faculty);
+        await Promise.all(
+          faculty.selections.map((slot: Slot) => {
+            slot.remaining += 1;
+            return entityManager.save(slot);
+          }),
+        );
+      });
+
+      return faculty;
+    } catch (e) {
+      if (e.name === CUSTOM_ERROR_NAME)
+        throw new HttpException(e.message, e.status);
+      else
+        throw new HttpException(
+          'Error while deleting faculty',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+    }
+  }
 
   async getSlots(): Promise<Slot[]> {
     return await this.slotRepo.find();

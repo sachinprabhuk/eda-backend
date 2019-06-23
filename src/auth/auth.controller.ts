@@ -1,8 +1,8 @@
-import { Controller, Get, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete } from '@nestjs/common';
 
 import { AuthService } from './auth.service';
 import { LoginDTO } from './auth.dto';
-import { JWTdecoded } from 'dist/auth/auth.dto';
+import { JWTdecoded } from '../shared/index.dto';
 
 @Controller("api/auth")
 export class AuthController {
@@ -18,5 +18,5 @@ export class AuthController {
 	isAuth(@Body('token') token: string): JWTdecoded {
 		return this.authService.isAuth(token);
 	}
-
+	
 }

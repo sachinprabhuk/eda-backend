@@ -9,19 +9,25 @@ async function bootstrap() {
 bootstrap();
 
 
-//////////////////////////////////////////////////////////////
-// import { Faculty } from './entities/Faculty.entity';
-// const faculty = new Faculty();
-// faculty.branch = 'CSE';
-// faculty.contact = '1234567890';
-// faculty.designation = 5;
-// faculty.email = 'someemail@gmail.com';
-// faculty.name = 'somename';
-// faculty.password = '1234';
-// faculty.id = '1234';
-
+///////////////////// upload stuff ///////////////////////////
 // import { createConnection } from 'typeorm';
 // import { join } from 'path';
+
+// import { Slot } from './entities/Slot.entity';
+// import { Faculty } from './entities/Faculty.entity';
+
+// const slot1 = new Slot();
+// slot1.date = new Date(2018, 8, 12);
+// slot1.total_slots = 50;
+// slot1.available_slots = 50;
+// slot1.type = 'aft';
+
+// const slot2 = new Slot();
+// slot2.date = new Date(2018, 8, 12);
+// slot2.total_slots = 10;
+// slot2.available_slots = 10;
+// slot2.type = 'mor';
+
 // createConnection(
 //   {
 //     name: "default",
@@ -35,6 +41,16 @@ bootstrap();
 //     synchronize: true,
 //   }
 // ).then(async connection => {
-//   await connection.getRepository(Faculty).save(faculty);
+//   const facRepo = await connection.getRepository(Faculty);
+//   const fac2 = await facRepo.findOne({ id: '1111' });
+//   const fac1 = await facRepo.findOne({ id: '1234' });
+
+//   fac1.selections = [slot1, slot2];
+//   fac2.selections = [slot1];
+    
+//   await facRepo.save(fac1);
+//   await facRepo.save(fac2);
+
+//   console.log("done!");
 // })
 // .catch(console.log);

@@ -14,10 +14,10 @@ export class Slot {
 	date: Date
 
 	@Column()
-	total_slots: number
+	total: number
 
 	@Column()
-	available_slots: number
+	remaining: number
 
 	@ManyToMany(type => Faculty, fac => fac.selections)
 	faculties: Faculty[]

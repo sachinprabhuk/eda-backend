@@ -6,8 +6,7 @@ import { Faculty } from '../entities/Faculty.entity';
 import { Admin } from '../entities/Admin.entity';
 import { Slot } from '../entities/Slot.entity';
 import { SlotDTO, FacultyDTO } from '../shared/index.dto';
-import { CustomError, CUSTOM_ERROR_NAME } from '../shared/Custom.Error';
-// import { BadRequestException } from '../shared/BadRequest.Exception';
+
 export class AdminService {
   constructor(
     @InjectRepository(Admin)
@@ -120,24 +119,29 @@ export class AdminService {
 
       return faculty;
     } catch (e) {
-      if (e.name === CUSTOM_ERROR_NAME)
-        throw new HttpException(e.message, e.status);
-      else
-        throw new HttpException(
-          'Error while deleting faculty',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
+      if (e instanceof HttpException) throw e;
+      throw new HttpException(
+        'Error while deleting faculty',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
-  // async deleteSlot(slotID: string): Promise<Slot> {
-  //   const slot: Slot = await this.slotRepo.findOne({ id: slotID });
-  //   if (!slot) throw new BadRequestException('Invalid slot id');
+  async deleteSlot(slotID: string): Promise<Slot> {
+    const slot: Slot = await this.slotRepo.findOne({ id: slotID });
+    if (!slot) throw new BadRequestException('Invalid slot id');
+    try {
+      await this.slotRepo.delete(slot);
+      return slot;
+    } catch (e) {
+      throw new HttpException(
+        'Error while deleting the slot',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 
-  //   await this.slotRepo.delete(slot);
-  //   return slot;
-  // }
-
+  //////////////////// end points for testing //////////////////////////
   async getSlots(): Promise<Slot[]> {
     return await this.slotRepo.find();
   }

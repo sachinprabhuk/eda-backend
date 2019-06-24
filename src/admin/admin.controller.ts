@@ -35,13 +35,13 @@ export class AdminController {
 	}
 
 	@Delete("faculty")
-	async deleteFaculty(@Body('facultyID') facID: string): Promise<any> {
+	async deleteFaculty(@Body('facultyID') facID: string): Promise<Faculty> {
 		return this.adminService.deleteFaculty(facID);
 	}
 
 	@Delete("slot")
-	async deleteSlot(@Body('slotID') slotID: string): Promise<any> {
-		return slotID;
+	async deleteSlot(@Body('slotID') slotID: string): Promise<Slot> {
+		return this.adminService.deleteSlot(slotID);
 	}
 
 	@Delete("all-test")

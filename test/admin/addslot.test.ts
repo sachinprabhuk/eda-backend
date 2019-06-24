@@ -23,7 +23,7 @@ afterEach(async () => {
 	await axios.delete(`/admin/all-test`);
 })
 
-
+///////////////////////////////////////////////////////////////
 describe('add slot test ----------------------', () => {
 	test('add new slot', async () => {
 		const slot1 = {

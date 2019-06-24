@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
 import { Repository, In } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -13,7 +13,7 @@ const areDatesEqual = (d1: Date, d2: Date) => {
     d1.getFullYear() === d2.getFullYear() &&
     d1.getMonth() === d2.getMonth() &&
     d1.getDate() === d2.getDate()
-  )
+  );
 };
 
 @Injectable()
@@ -24,15 +24,15 @@ export class FacultyService {
     @InjectRepository(Faculty)
     private readonly facultyRepo: Repository<Faculty>,
     @InjectRepository(SlotLim)
-    private readonly slotLimRepo: Repository<SlotLim>
+    private readonly slotLimRepo: Repository<SlotLim>,
   ) {}
 
   async selectSlot(userInfo: JWTdecoded, slotID: string): Promise<Slot[]> {
     try {
       // slot validation.
       const slot = await this.slotRepo.findOne({ id: slotID });
-      if (!slot) throw new CustomError('Invalid slot id');
-      if (slot.remaining <= 0) throw new CustomError('No more slot left!sorry');
+      if (!slot) throw new BadRequestException('Invalid slot id');
+      if (slot.remaining <= 0) throw new BadRequestException('No more slot left!sorry');
 
       // faculty validation.
       const faculty = await this.facultyRepo.findOne({
@@ -41,7 +41,7 @@ export class FacultyService {
         },
         relations: ['selections'],
       });
-      if (!faculty) throw new CustomError('Invalid faculty id');
+      if (!faculty) throw new BadRequestException('Invalid faculty id');
 
       // checking if faculty has previously selected slot on the same date.
       if (
@@ -50,7 +50,7 @@ export class FacultyService {
             facSlot.id === slotID || areDatesEqual(facSlot.date, slot.date),
         )
       )
-        throw new CustomError('You have already selected a slot on this date');
+        throw new BadRequestException('You have already selected a slot on this date');
 
       // check if the faculty has already selected max slot, based on designation
 
@@ -62,13 +62,11 @@ export class FacultyService {
       // returning the faculty.
       return faculty.selections;
     } catch (e) {
-      if (e.name === CUSTOM_ERROR_NAME)
-        throw new HttpException(e.message, e.status);
-      else
-        throw new HttpException(
-          'Error while saving slot!',
-          HttpStatus.INTERNAL_SERVER_ERROR,
-        );
+      if (e instanceof HttpException) throw e;
+      throw new HttpException(
+        'Error while saving slot!',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 }

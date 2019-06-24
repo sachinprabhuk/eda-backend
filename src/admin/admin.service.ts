@@ -60,7 +60,7 @@ export class AdminService {
     try {
       if (await this.slotRepo.findOne({ date, type }))
         throw new BadRequestException('Duplicate entry!!');
-        
+
       await this.slotRepo.insert(slot);
       return slot;
     } catch (e) {
@@ -106,7 +106,7 @@ export class AdminService {
         where: { id: facID },
         relations: ['selections'],
       });
-      if (!faculty) throw new CustomError('Invalid faculty id');
+      if (!faculty) throw new BadRequestException('Invalid faculty id');
 
       await getManager().transaction(async entityManager => {
         await entityManager.remove(faculty);

@@ -44,4 +44,9 @@ export class AdminController {
 		return slotID;
 	}
 
+	@Delete("all-test")
+	async deleteAll(): Promise<string> {
+		return this.adminService.clearAll();
+	}
+
 }

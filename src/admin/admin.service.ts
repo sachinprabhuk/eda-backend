@@ -1,13 +1,13 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, getManager } from 'typeorm';
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
 
 import { Faculty } from '../entities/Faculty.entity';
 import { Admin } from '../entities/Admin.entity';
 import { Slot } from '../entities/Slot.entity';
 import { SlotDTO, FacultyDTO } from '../shared/index.dto';
 import { CustomError, CUSTOM_ERROR_NAME } from '../shared/Custom.Error';
-
+// import { BadRequestException } from '../shared/BadRequest.Exception';
 export class AdminService {
   constructor(
     @InjectRepository(Admin)
@@ -50,16 +50,25 @@ export class AdminService {
   }
 
   async addSlot({ date, type, total }: SlotDTO): Promise<Slot> {
+    date = new Date(date);
+
     const slot = new Slot();
     slot.total = total;
     slot.date = date;
     slot.remaining = total;
     slot.type = type;
     try {
-      await this.slotRepo.save(slot);
+      if (await this.slotRepo.findOne({ date, type }))
+        throw new BadRequestException('Duplicate entry!!');
+        
+      await this.slotRepo.insert(slot);
       return slot;
     } catch (e) {
-      throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
+      if (e instanceof HttpException) throw e;
+      throw new HttpException(
+        'Error while adding new slot!',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
@@ -121,7 +130,21 @@ export class AdminService {
     }
   }
 
+  // async deleteSlot(slotID: string): Promise<Slot> {
+  //   const slot: Slot = await this.slotRepo.findOne({ id: slotID });
+  //   if (!slot) throw new BadRequestException('Invalid slot id');
+
+  //   await this.slotRepo.delete(slot);
+  //   return slot;
+  // }
+
   async getSlots(): Promise<Slot[]> {
     return await this.slotRepo.find();
+  }
+
+  async clearAll(): Promise<string> {
+    await this.slotRepo.delete({});
+    await this.facultyRepo.delete({});
+    return 'done';
   }
 }

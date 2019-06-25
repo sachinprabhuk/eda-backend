@@ -57,8 +57,11 @@ export class AdminController {
   }
 
   @Get('report')
-  async report(@Query() query: any): Promise<any> {
-    return this.adminService.report(query.date, query.type);
+  async report(
+    @Query('type') type: string,
+    @Query('date') date: Date,
+  ): Promise<any> {
+    return this.adminService.report(date, type);
   }
 
   // for tests

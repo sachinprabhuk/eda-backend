@@ -161,7 +161,7 @@ export class AdminService {
         .getRawMany();
 
       return result.reduce((acc, curr) => {
-        
+
         acc[curr['type']] = JSON.parse(curr['dates']);
         return acc;
       }, {});
@@ -175,22 +175,21 @@ export class AdminService {
 
   async report(date: Date, slotType: string): Promise<any> {
     try {
-      if (!slotType.match(/^(aft|morn)$/))
+      if (!slotType || !slotType.match(/^(aft|morn)$/))
         throw new BadRequestException('Invalid type');
       return await this.slotRepo
         .createQueryBuilder('slot')
-        .leftJoinAndSelect('slot.faculties', 'faculties')
+        .innerJoinAndSelect('slot.faculties', 'faculties')
         .select([
-          'faculties.id',
-          'faculties.name',
-          'faculties.branch',
-          'faculties.designation',
+          'faculties.id as id',
+          'faculties.name as name',
+          'faculties.branch as branch',
+          'faculties.designation as designation',
         ])
-        .where(`slot.date = '${new Date(date).toISOString().slice(0, 10)}'`)
-        .andWhere(`slot.type = '${slotType}'`)
+        .where("slot.date = :date", { date: new Date(date) })
+        .andWhere("slot.type = :type", { type: slotType })
         .getRawMany();
     } catch (e) {
-      console.log(e);
       throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

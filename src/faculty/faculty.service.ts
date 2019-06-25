@@ -49,11 +49,13 @@ export class FacultyService {
       if (!faculty) throw new BadRequestException('Invalid faculty id');
 
       // checking if faculty has previously selected slot on the same date.
-      console.log(faculty.selections);
       if (
         faculty.selections.find(
           facSlot =>
-            facSlot.id === slotID || areDatesEqual(facSlot.date, slot.date),
+            facSlot.id === slotID || areDatesEqual(
+              new Date(facSlot.date), 
+              new Date(slot.date)
+            ),
         )
       )
         throw new BadRequestException(

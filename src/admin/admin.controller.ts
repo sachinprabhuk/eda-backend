@@ -1,52 +1,74 @@
-import { Controller, Get, UseGuards, Body, Post, Delete } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  UseGuards,
+  Body,
+  Post,
+  Delete,
+  Param,
+  Query,
+} from '@nestjs/common';
 
-import { AdminAuthGuard } from "../auth/auth.guard";
-import { AdminService } from "./admin.service";
+import { AdminAuthGuard } from '../auth/auth.guard';
+import { AdminService } from './admin.service';
 import { SlotDTO, FacultyDTO } from '../shared/index.dto';
-import { Slot } from "../entities/Slot.entity";
-import { Faculty } from "../entities/Faculty.entity";
+import { Slot } from '../entities/Slot.entity';
+import { Faculty } from '../entities/Faculty.entity';
 
-
-@Controller("api/admin")
+@Controller('api/admin')
 @UseGuards(AdminAuthGuard)
 export class AdminController {
+  // Note: req.body has *user* object from the AdminAuthGuard.
+  constructor(private readonly adminService: AdminService) {}
 
-	// Note: req.body has *user* object from the AdminAuthGuard.
-	constructor(private readonly adminService: AdminService) {}
+  @Get('slot-selections')
+  getSelections(): Promise<any> {
+    return this.adminService.getSelections();
+  }
 
-	@Get('slot-selections')
-	getSelections(): Promise<any> {
-		return this.adminService.getSelections();
-	}
+  @Post('slot')
+  addSlot(@Body('slot') slot: SlotDTO): Promise<Slot> {
+    return this.adminService.addSlot(slot);
+  }
 
-	@Post('slot')
-	addSlot(@Body('slot') slot: SlotDTO): Promise<Slot> {
-		return this.adminService.addSlot(slot);
-	}
+  @Post('faculty')
+  addFaculty(@Body('faculty') faculty: FacultyDTO): Promise<Faculty> {
+    return this.adminService.addFaculty(faculty);
+  }
 
-	@Post('faculty')
-	addFaculty(@Body('faculty') faculty: FacultyDTO): Promise<Faculty> {
-		return this.adminService.addFaculty(faculty);
-	}
+  @Delete('faculty')
+  async deleteFaculty(@Body('facultyID') facID: string): Promise<Faculty> {
+    return this.adminService.deleteFaculty(facID);
+  }
 
-	@Get('slots')
-	getSlots(): Promise<Slot[]> {
-		return this.adminService.getSlots();
-	}
+  @Delete('slot')
+  async deleteSlot(@Body('slotID') slotID: string): Promise<Slot> {
+    return this.adminService.deleteSlot(slotID);
+  }
 
-	@Delete("faculty")
-	async deleteFaculty(@Body('facultyID') facID: string): Promise<Faculty> {
-		return this.adminService.deleteFaculty(facID);
-	}
+  @Get('pending-faculty')
+  async pendingFaculty(): Promise<Faculty[]> {
+    return this.adminService.pendingFaculty();
+  }
 
-	@Delete("slot")
-	async deleteSlot(@Body('slotID') slotID: string): Promise<Slot> {
-		return this.adminService.deleteSlot(slotID);
-	}
+  @Get('report-meta')
+  async reportMeta(): Promise<any> {
+    return this.adminService.reportMeta();
+  }
 
-	@Delete("all-test")
-	async deleteAll(): Promise<string> {
-		return this.adminService.clearAll();
-	}
+  @Get('report')
+  async report(@Query() query: any): Promise<any> {
+    return this.adminService.report(query.date, query.type);
+  }
 
+  // for tests
+  @Delete('all-test')
+  async deleteAll(): Promise<string> {
+    return this.adminService.clearAll();
+  }
+
+  @Get('slots')
+  getSlots(): Promise<Slot[]> {
+    return this.adminService.getSlots();
+  }
 }

@@ -49,6 +49,7 @@ export class FacultyService {
       if (!faculty) throw new BadRequestException('Invalid faculty id');
 
       // checking if faculty has previously selected slot on the same date.
+      console.log(faculty.selections);
       if (
         faculty.selections.find(
           facSlot =>
@@ -60,7 +61,6 @@ export class FacultyService {
         );
 
       // check if the faculty has already selected max slot, based on designation
-
       // registration.
       faculty.selections.push(slot);
       slot.remaining -= 1;

@@ -7,10 +7,11 @@ import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 import { AuthModule } from '../auth/auth.module';
 import { Slot } from '../entities/Slot.entity';
+import { SlotLim } from '../entities/SlotLim.entity';
 
 @Module({
   imports: [
-		TypeOrmModule.forFeature([Admin, Faculty, Slot]),
+		TypeOrmModule.forFeature([Admin, Faculty, Slot, SlotLim]),
 		AuthModule
 	],
   controllers: [AdminController],

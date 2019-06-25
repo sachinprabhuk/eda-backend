@@ -10,7 +10,7 @@ export class Slot {
 	@Column({ length: 10 })
 	type: string
 
-	@Column()
+	@Column({ type: 'date' })
 	date: Date
 
 	@Column()

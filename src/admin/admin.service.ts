@@ -6,6 +6,7 @@ import { Faculty } from '../entities/Faculty.entity';
 import { Admin } from '../entities/Admin.entity';
 import { Slot } from '../entities/Slot.entity';
 import { SlotDTO, FacultyDTO } from '../shared/index.dto';
+import { SlotLim } from '../entities/SlotLim.entity';
 
 export class AdminService {
   constructor(
@@ -15,6 +16,8 @@ export class AdminService {
     private readonly facultyRepo: Repository<Faculty>,
     @InjectRepository(Slot)
     private readonly slotRepo: Repository<Slot>,
+    @InjectRepository(SlotLim)
+    private readonly limRepo: Repository<SlotLim>,
   ) {}
 
   async getSelections(): Promise<any> {
@@ -138,6 +141,57 @@ export class AdminService {
         'Error while deleting the slot',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  async pendingFaculty(): Promise<Faculty[]> {
+    this.facultyRepo.find({
+      relations: ['selections'],
+      where: {},
+    });
+    return;
+  }
+
+  async reportMeta(): Promise<any> {
+    try {
+      const result: any = await this.slotRepo
+        .createQueryBuilder()
+        .select(['type', 'JSON_ARRAYAGG(date) as dates'])
+        .groupBy('type')
+        .getRawMany();
+
+      return result.reduce((acc, curr) => {
+        
+        acc[curr['type']] = JSON.parse(curr['dates']);
+        return acc;
+      }, {});
+    } catch (e) {
+      throw new HttpException(
+        'Error while fetching report!!',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  async report(date: Date, slotType: string): Promise<any> {
+    try {
+      if (!slotType.match(/^(aft|morn)$/))
+        throw new BadRequestException('Invalid type');
+      return await this.slotRepo
+        .createQueryBuilder('slot')
+        .leftJoinAndSelect('slot.faculties', 'faculties')
+        .select([
+          'faculties.id',
+          'faculties.name',
+          'faculties.branch',
+          'faculties.designation',
+        ])
+        .where(`slot.date = '${new Date(date).toISOString().slice(0, 10)}'`)
+        .andWhere(`slot.type = '${slotType}'`)
+        .getRawMany();
+    } catch (e) {
+      console.log(e);
+      throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
 

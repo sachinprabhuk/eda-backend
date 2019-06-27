@@ -1,4 +1,5 @@
 import { default as ax } from 'axios';
+import { addSlot, slotSelection, addFaculty } from '../shared/utils';
 
 let token: string;
 
@@ -36,35 +37,12 @@ describe('delete faculty tests -----------------', () => {
 
 	test("deleteFac increases the remaining slot", async () => {
 		expect.assertions(2)
-		const slot1 = {
-      slot: {
-        type: 'morn',
-        total: 10,
-        date: new Date(2018, 10, 5).toISOString(),
-      },
-    };
-		const { data: resSlot1 } = await axios.post("/admin/slot", slot1);
-		const fac1 = {
-			faculty: {
-        id: '1111',
-        name: 'sachin',
-        password: '1111',
-        branch: 'CSE',
-        designation: 1,
-        email: 'prabhachin44@gmail.com',
-        contact: '8277487857',
-      },
-		}
-		const { data: resFac1 } = await axios.post("/admin/faculty", fac1);
+		const { data: resSlot1 } = await addSlot(axios, new Date(2018, 10, 5), "morn")
+
+		await addFaculty(axios, '1111');
 
 		// slot selection
-		const { data: selections } = await axios.post('/faculty/select-slot', {
-      user: {
-        admin: false,
-        username: '1111',
-      },
-      slotID: resSlot1.id,
-		});
+		const { data: selections } = await slotSelection(axios, '1111', resSlot1.id)
 
 		expect(resSlot1.remaining).toBe(selections[0].remaining + 1)
 

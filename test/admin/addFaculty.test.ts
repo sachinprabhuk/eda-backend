@@ -1,5 +1,6 @@
 
 import axios from 'axios';
+import { addFaculty } from '../shared/utils';
 
 let token: string;
 
@@ -30,54 +31,24 @@ const errmsg = 'Error while adding new faculty!'
 
 describe('add faculty test --------------------', () => {
 
-	test('adding new faculty', async () => {
-		const fac = {
-			faculty: {
-				id: "1111",
-				name: "sachin",
-				password: "1111",
-				branch: "CSE",
-				designation: 1,
-				email: "prabhachin44@gmail.com",
-				contact: "8277487857"
-			}
-		}
-		const { data: res } = await axios.post('/admin/faculty', fac)
+	it('adds new faculty', async () => {
+		expect.assertions(1);
+
+		const { data: res } = await addFaculty(axios, '1111')
 		expect(res.id).toEqual("1111")
 	})	
 
-	test('duplicate entry', async () => {
-		const fac1 = {
-			faculty: {
-				id: "1111",
-				name: "sachin",
-				password: "1111",
-				branch: "CSE",
-				designation: 1,
-				email: "prabhachin44@gmail.com",
-				contact: "8277487857"
-			}
-		}
-		const fac2 = {
-			faculty: {
-				id: "1111",
-				name: "sachin",
-				password: "1111",
-				branch: "CSE",
-				designation: 1,
-				email: "prabhachin44@gmail.com",
-				contact: "8277487857"
-			}
-		}
-		const { data: res } = await axios.post('/admin/faculty', fac1)
+	it('throws error for duplicate entry', async () => {
+		expect.assertions(1);
+		const { data: res } = await addFaculty(axios, '1111');
 		try {
-			await axios.post('/admin/faculty', fac2);
+			await addFaculty(axios, '1111');
 		}catch(e) {
 			expect(e.response.data.message).toEqual(errmsg);
 		}
 	})
 
-	test('missing id field', async () => {
+	it('throws error for missing id field', async () => {
 		const fac = {
 			faculty: {
 				name: "sachin",

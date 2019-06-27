@@ -68,7 +68,9 @@ describe('report tests-----------------------', () => {
     }
   });
 
-  it('fetching report', async () => {
+
+
+  it('fetches report', async () => {
     expect.assertions(2);
     const fac1 = {
       faculty: {
@@ -95,7 +97,6 @@ describe('report tests-----------------------', () => {
     const { data: res1 } = await axios.post('/admin/faculty', fac1);
     const { data: res2 } = await axios.post('/admin/faculty', fac2);
     await axios.post('/faculty/select-slot', {
-      // 1st user selects 1st slot
       user: {
         admin: false,
         username: '1111',
@@ -103,7 +104,6 @@ describe('report tests-----------------------', () => {
       slotID: slotids[0],
     });
     await axios.post('/faculty/select-slot', {
-      // 1st user selects 1st slot
       user: {
         admin: false,
         username: '1112',
@@ -123,6 +123,8 @@ describe('report tests-----------------------', () => {
     expect(ids).toContain('1111');
     expect(ids).toContain('1112');
   });
+
+
 
   it('fetches empty report for valid date', async () => {
     // fetching report

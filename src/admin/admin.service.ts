@@ -83,13 +83,16 @@ export class AdminService {
     designation,
     email,
   }: FacultyDTO): Promise<Faculty> {
+    const slotLim = await this.limRepo.findOne({ designation });
+    if (!slotLim) throw new BadRequestException('Invalid designation!!');
+
     const faculty = new Faculty();
     faculty.id = id;
     faculty.name = name;
     faculty.password = password;
     faculty.branch = branch;
     faculty.contact = contact;
-    faculty.designation = designation;
+    faculty.slotLim = slotLim;
     faculty.email = email;
     try {
       await this.facultyRepo.insert(faculty);
@@ -144,14 +147,6 @@ export class AdminService {
     }
   }
 
-  async pendingFaculty(): Promise<Faculty[]> {
-    this.facultyRepo.find({
-      relations: ['selections'],
-      where: {},
-    });
-    return;
-  }
-
   async reportMeta(): Promise<any> {
     try {
       const result: any = await this.slotRepo
@@ -161,7 +156,6 @@ export class AdminService {
         .getRawMany();
 
       return result.reduce((acc, curr) => {
-
         acc[curr['type']] = JSON.parse(curr['dates']);
         return acc;
       }, {});
@@ -180,18 +174,52 @@ export class AdminService {
       return await this.slotRepo
         .createQueryBuilder('slot')
         .innerJoinAndSelect('slot.faculties', 'faculties')
+        .innerJoinAndSelect(
+          SlotLim,
+          'slotLim',
+          'faculties.designation = slotLim.designation',
+        )
         .select([
           'faculties.id as id',
           'faculties.name as name',
           'faculties.branch as branch',
-          'faculties.designation as designation',
+          'slotLim.designation as designation',
         ])
-        .where("slot.date = :date", { date: new Date(date) })
-        .andWhere("slot.type = :type", { type: slotType })
+        .where('slot.date = :date', { date: new Date(date) })
+        .andWhere('slot.type = :type', { type: slotType })
         .getRawMany();
     } catch (e) {
       throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  async pendingFaculty(designation: number): Promise<any> {
+    console.log(designation);
+    return await this.facultyRepo
+      .createQueryBuilder('faculty')
+      .innerJoinAndSelect('faculty.slotLim', 'lim')
+      .innerJoinAndSelect('faculty.selections', 'selections')
+      .select([
+        'faculty.id',
+        // 'faculty.name',
+        // 'lim.designation',
+        // 'lim.mornMax',
+        // 'lim.aftMax',
+        'lim.maximum',
+      ])
+      .where(`faculty.designation = ${designation}`)
+      .groupBy('faculty.id')
+      .addGroupBy('lim.maximum')
+      .having('count(*) < lim.maximum')
+      // .getQuery()
+      .getRawMany()
+      
+      // .addGroupBy('faculty.name')
+      // .addGroupBy('lim.designation')
+      // .addGroupBy('lim.mornMax')
+      // .addGroupBy('lim.aftMax')
+      
+    return;
   }
 
   //////////////////// end points for testing //////////////////////////

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { addSlot } from '../shared/utils';
 
 let token: string;
 
@@ -25,13 +26,9 @@ afterEach(async () => {
 
 ///////////////////////////////////////////////////////////////
 describe('add slot test ----------------------', () => {
-	test('add new slot', async () => {
-		const slot1 = {
-			slot: {
-				type: "morn", total: 10, date: new Date(2018, 10, 5).toISOString()
-			}
-		}
-		const { data: res1 } = await axios.post('/admin/slot', slot1);
+
+	it('adds new slot', async () => {
+		const { data: res1 } = await addSlot(axios, new Date(2018, 10, 5), "morn")
 		expect(res1.type).toBe("morn")
 		expect(res1.id).toBeTruthy();
 	})

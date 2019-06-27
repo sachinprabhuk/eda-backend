@@ -47,8 +47,8 @@ export class AdminController {
   }
 
   @Get('pending-faculty')
-  async pendingFaculty(): Promise<Faculty[]> {
-    return this.adminService.pendingFaculty();
+  async pendingFaculty(@Query('designation') desig: number): Promise<Faculty[]> {
+    return this.adminService.pendingFaculty(desig);
   }
 
   @Get('report-meta')

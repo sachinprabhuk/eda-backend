@@ -4,8 +4,11 @@ import {
   Column,
   PrimaryColumn,
   JoinTable,
+  JoinColumn,
+  ManyToOne,
 } from 'typeorm';
 import { Slot } from './Slot.entity';
+import { SlotLim } from './SlotLim.entity';
 
 
 @Entity()
@@ -16,8 +19,9 @@ export class Faculty {
   @Column({ length: 50 })
   name: string;
 
-  @Column()
-  designation: number;
+  @ManyToOne(type => SlotLim)
+  @JoinColumn({ name: "designation" })
+  slotLim: SlotLim;
 
   @Column({ length: 50 })
   branch: string;

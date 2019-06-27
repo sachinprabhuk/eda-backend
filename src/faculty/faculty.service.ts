@@ -11,6 +11,7 @@ import { JWTdecoded } from '../shared/index.dto';
 import { Slot } from '../entities/Slot.entity';
 import { Faculty } from '../entities/Faculty.entity';
 import { SlotLim } from '../entities/SlotLim.entity';
+import { slotsResp } from './faculty.dto';
 
 const areDatesEqual = (d1: Date, d2: Date) => {
   return (
@@ -30,6 +31,31 @@ export class FacultyService {
     @InjectRepository(SlotLim)
     private readonly slotLimRepo: Repository<SlotLim>,
   ) {}
+
+  async getSlots(type: string, userID: string): Promise<slotsResp[]> {
+    const db = await this.slotRepo.createQueryBuilder('slot');
+
+    const subQuery = db
+      .subQuery()
+      .from(Faculty, 'faculty')
+      .leftJoinAndSelect('faculty.selections', 'selections')
+      .select('selections.date')
+      .andWhere('faculty.id = :id')
+      .getQuery();
+
+    return await db
+      .select([
+        'slot.id as id',
+        'slot.date as date',
+        'slot.total as total',
+        'slot.remaining as remaining',
+      ])
+      .where('slot.date NOT IN ' + subQuery)
+      .andWhere('slot.type = :type')
+      .setParameter('type', type)
+      .setParameter('id', userID)
+      .getRawMany();
+  }
 
   async selectSlot(userInfo: JWTdecoded, slotID: string): Promise<Slot[]> {
     try {
@@ -52,10 +78,8 @@ export class FacultyService {
       if (
         faculty.selections.find(
           facSlot =>
-            facSlot.id === slotID || areDatesEqual(
-              new Date(facSlot.date), 
-              new Date(slot.date)
-            ),
+            facSlot.id === slotID ||
+            areDatesEqual(new Date(facSlot.date), new Date(slot.date)),
         )
       )
         throw new BadRequestException(

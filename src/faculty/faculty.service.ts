@@ -71,7 +71,7 @@ export class FacultyService {
     if (!slot) return new SlotSelectionError('Invalid slot id', slotID);
     if (slot.remaining <= 0)
       return new SlotSelectionError(
-        'no slots remaining on this date',
+        'Sorry! no slots remaining on this date',
         slot.date,
       );
 
@@ -127,7 +127,7 @@ export class FacultyService {
         relations: ['selections', 'slotLim'],
       });
       if (!faculty) {
-        resp.updateResp(new SlotSelectionError('invalid faculty id', username));
+        resp.updateResp(new SlotSelectionError('Invalid faculty id', username));
         return resp;
       }
 
@@ -145,7 +145,7 @@ export class FacultyService {
       return resp;
     } catch (e) {
       console.log(e);
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException("Ooops!!Something went wrong!!!");
     }
   }
 }

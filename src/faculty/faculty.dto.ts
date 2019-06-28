@@ -20,7 +20,7 @@ export class SlotSelectionError {
 export class SlotSelectionResp {
 	errors: Array<SlotSelectionError>
 	allotedSlots: Slot[]
-
+	
 	constructor() {
 		this.errors = [];
 		this.allotedSlots = [];

@@ -36,11 +36,14 @@ export class AuthService {
     }
   }
 
-  async facultyLogin({ username, password, admin }: LoginDTO): Promise<string> {
-		const user = await this.facultyRepo.findOne({
-      id: username,
-      password
-    });
+  async facultyLogin({ username, password, admin }: LoginDTO): Promise<any> {
+
+    const user = await this.facultyRepo.findOne({
+      where: {
+        id: username, password: password
+      },
+      relations: ["selections", "slotLim"]
+    })
 		if (!user) 
 			throw new HttpException('invalid username or password!', HttpStatus.UNAUTHORIZED);
     else {
@@ -52,7 +55,13 @@ export class AuthService {
         process.env.SECRETE_KEY,
         { expiresIn: '1h' },
       );
-      return token;
+      return {
+        token, 
+        faculty: {
+          id: user.id, name: user.name,
+          selections: user.selections, slotLim: user.slotLim
+        }
+      };
     }
 	}
 
@@ -62,11 +71,23 @@ export class AuthService {
       : this.facultyLogin(loginDTO);
 	}
 	
-	isAuth(token: string): JWTdecoded {
+	async isAuth(token: string): Promise<JWTdecoded | Faculty> {
 		try {
-			const decoded: JWTdecoded = jwt.verify(token, process.env.SECRETE_KEY) as JWTdecoded;
-			if(decoded.hasOwnProperty('username') && decoded.hasOwnProperty("admin"))
-				return decoded;
+      const decoded: JWTdecoded = jwt.verify(token, process.env.SECRETE_KEY) as JWTdecoded;
+			if(decoded.hasOwnProperty('username') && decoded.hasOwnProperty("admin")) {
+        const { username: id, admin } = decoded;
+        // faculty situation
+        if(!admin) {
+          const faculty = await this.facultyRepo.findOne({
+            where: { id },
+            relations: ["selections", "slotLim"]
+          })
+          delete faculty.password;
+          return faculty;
+        }
+        else // admin situation
+          return decoded
+      }
 			throw new Error();
 		}catch(e) {
 			throw new HttpException('invalid token!', HttpStatus.UNAUTHORIZED);

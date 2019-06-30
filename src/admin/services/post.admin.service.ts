@@ -4,10 +4,11 @@ import {
   HttpException,
   HttpStatus,
 } from '@nestjs/common';
-import { SlotDTO, FacultyDTO } from '../../shared/index.dto';
+import { readFile, utils, WorkBook, SSF } from 'xlsx';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
+import { SlotDTO, FacultyDTO } from '../../shared/index.dto';
 import { Slot, Faculty, SlotLim } from '../../entities';
 
 @Injectable()
@@ -32,7 +33,6 @@ export class PostAdminService {
     try {
       if (await this.slotRepo.findOne({ date, type }))
         throw new BadRequestException('Duplicate entry!!');
-
       await this.slotRepo.insert(slot);
       return slot;
     } catch (e) {
@@ -74,5 +74,31 @@ export class PostAdminService {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async addFaculties(file: Express.Multer.File): Promise<Faculty[]> {
+    const workBook: WorkBook = readFile(`./uploads/${file.filename}`);
+    const firstSheetName = workBook.SheetNames[0];
+    const sheet = workBook.Sheets[firstSheetName];
+    const facultyArray: FacultyDTO[] = utils.sheet_to_json(sheet);
+
+    return await Promise.all(
+      facultyArray.map(faculty => this.addFaculty(faculty)),
+    );
+  }
+
+  async addSlots(file: Express.Multer.File): Promise<Slot[]> {
+    const workBook: WorkBook = readFile(`./uploads/${file.filename}`);
+    const firstSheetName = workBook.SheetNames[0];
+    const sheet = workBook.Sheets[firstSheetName];
+    const slotArray: SlotDTO[] = utils.sheet_to_json(sheet);
+
+    const parsedSlotArray = slotArray.map((slot: any) => {
+      const dateObj = SSF.parse_date_code(slot.date);
+      slot.date = new Date(dateObj.y, dateObj.m, dateObj.d);
+      return slot;
+    });
+
+    return await Promise.all(parsedSlotArray.map(slot => this.addSlot(slot)));
   }
 }

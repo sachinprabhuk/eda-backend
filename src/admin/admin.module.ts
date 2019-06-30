@@ -11,11 +11,15 @@ import { DeleteAdminService } from './services/delete.admin.service';
 import { GetAdminService } from './services/get.admin.service';
 import { PostAdminService } from './services/post.admin.service';
 import { UtilAdminService } from './services/util.admin.service';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Admin, Faculty, Slot, SlotLim]),
     AuthModule,
+    MulterModule.register({
+      dest: './uploads',
+    }),
   ],
   controllers: [AdminController],
   providers: [

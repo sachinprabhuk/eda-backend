@@ -1,12 +1,15 @@
 import {
   Controller,
   Get,
-  UseGuards,
   Body,
   Post,
   Delete,
   Query,
+  UseInterceptors,
+  UploadedFile,
+  UseGuards,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 import { AdminAuthGuard } from '../auth/auth.guard';
 import { SlotDTO, FacultyDTO } from '../shared/index.dto';
@@ -66,6 +69,18 @@ export class AdminController {
   @Get('pending-faculty')
   pendingFaculty(@Query('designation') desig: number): Promise<Faculty[]> {
     return this.getService.pendingFaculty(desig);
+  }
+
+  @Post('faculties')
+  @UseInterceptors(FileInterceptor('file'))
+  addFaculties(@UploadedFile() file: Express.Multer.File): Promise<Faculty[]> {
+    return this.postService.addFaculties(file);
+  }
+
+  @Post('add-slots')
+  @UseInterceptors(FileInterceptor('file'))
+  addSlots(@UploadedFile() file: Express.Multer.File): Promise<Slot[]> {
+    return this.postService.addSlots(file);
   }
 
   // for tests

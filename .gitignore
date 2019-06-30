@@ -36,3 +36,6 @@ lerna-debug.log*
 
 .env
 ref
+docs
+scripts
+uploads

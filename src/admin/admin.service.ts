@@ -7,6 +7,7 @@ import { Admin } from '../entities/Admin.entity';
 import { Slot } from '../entities/Slot.entity';
 import { SlotDTO, FacultyDTO } from '../shared/index.dto';
 import { SlotLim } from '../entities/SlotLim.entity';
+import { SQLdate } from '../shared/tools';
 
 export class AdminService {
   constructor(
@@ -96,6 +97,7 @@ export class AdminService {
     faculty.email = email;
     try {
       await this.facultyRepo.insert(faculty);
+      delete faculty.slotLim;
       return faculty;
     } catch (e) {
       throw new HttpException(
@@ -171,55 +173,53 @@ export class AdminService {
     try {
       if (!slotType || !slotType.match(/^(aft|morn)$/))
         throw new BadRequestException('Invalid type');
-      return await this.slotRepo
-        .createQueryBuilder('slot')
-        .innerJoinAndSelect('slot.faculties', 'faculties')
-        .innerJoinAndSelect(
-          SlotLim,
-          'slotLim',
-          'faculties.designation = slotLim.designation',
-        )
-        .select([
-          'faculties.id as id',
-          'faculties.name as name',
-          'faculties.branch as branch',
-          'slotLim.designation as designation',
-        ])
-        .where('slot.date = :date', { date: new Date(date) })
-        .andWhere('slot.type = :type', { type: slotType })
-        .getRawMany();
+
+      /* SQL way
+      -------------
+      let query = `
+        select F.id, F.name, F.designation, F.branch
+        from faculty F, selection SEL, slot S
+        where F.id = SEL.facultyId and
+        SEL.slotId = S.id and 
+        S.date = '${SQLdate(date)}' and
+        S.type = '${slotType}'
+      `;
+      const entityManager = getManager();
+      return await entityManager.query(query);
+      */
+
+      const currSlot = await this.slotRepo.findOne({
+        where: {
+          date: new Date(date),
+          type: slotType,
+        },
+        relations: ['faculties'],
+      });
+      if (!currSlot) throw new Error();
+      return currSlot.faculties;
     } catch (e) {
-      throw new HttpException(e, HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException(
+        'Ooop! something went wrong!!',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
   async pendingFaculty(designation: number): Promise<any> {
-    console.log(designation);
-    return await this.facultyRepo
-      .createQueryBuilder('faculty')
-      .innerJoinAndSelect('faculty.slotLim', 'lim')
-      .innerJoinAndSelect('faculty.selections', 'selections')
-      .select([
-        'faculty.id',
-        // 'faculty.name',
-        // 'lim.designation',
-        // 'lim.mornMax',
-        // 'lim.aftMax',
-        'lim.maximum',
-      ])
-      .where(`faculty.designation = ${designation}`)
-      .groupBy('faculty.id')
-      .addGroupBy('lim.maximum')
-      .having('count(*) < lim.maximum')
-      // .getQuery()
-      .getRawMany()
-      
-      // .addGroupBy('faculty.name')
-      // .addGroupBy('lim.designation')
-      // .addGroupBy('lim.mornMax')
-      // .addGroupBy('lim.aftMax')
-      
-    return;
+    const query = `
+      select F.id, F.name, F.branch, F.email
+      from faculty F, selection S
+      where F.id = S.facultyId and
+      F.designation=${designation}
+      group by F.id, F.name, F.branch, F.designation
+      having count(*) < (
+        select maximum
+        from slot_lim
+        where designation = F.designation
+      )
+    `;
+    const entityManager = getManager();
+    return await entityManager.query(query);
   }
 
   //////////////////// end points for testing //////////////////////////

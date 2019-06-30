@@ -5,7 +5,7 @@ import {
   BadRequestException,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { Repository, In } from 'typeorm';
+import { Repository, In, Not, getManager } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { JWTdecoded } from '../shared/index.dto';
@@ -38,29 +38,63 @@ export class FacultyService {
   ) {}
 
   async getSlots(type: string, userID: string): Promise<slotsResp[]> {
-    const db = await this.slotRepo.createQueryBuilder('slot');
+    const entityManger = getManager();
+    return await entityManger.query(`
+      select *
+      from slot 
+      where date not in (
+        select slot.date
+        from faculty, selection, slot
+        where faculty.id = selection.facultyId and
+        slot.id = selection.slotId
+        and faculty.id = ${userID}
+      )
+    `);
+    // const allotedSlots = await this.facultyRepo.findOne({
+    //   relations: ['selections'],
+    //   where: { id: userID },
+    // });
 
-    const subQuery = db
-      .subQuery()
-      .from(Faculty, 'faculty')
-      .leftJoinAndSelect('faculty.selections', 'selections')
-      .select('selections.date')
-      .andWhere('faculty.id = :id')
-      .getQuery();
+    // // @ts-ignore
+    // return allotedSlots;
+    // const subQuery = await this.facultyRepo
+    //   .createQueryBuilder()
+    //   .subQuery()
+    //   .from(Faculty, 'faculty')
+    //   .leftJoinAndSelect('faculty.selections', 'selections')
+    //   .select('selections.date')
+    //   .andWhere('faculty.id = :id')
+    //   .getQuery();
 
-    return await db
-      .select([
-        'slot.id as id',
-        'slot.date as date',
-        'slot.total as total',
-        'slot.remaining as remaining',
-      ])
-      .where('slot.date NOT IN ' + subQuery)
-      .andWhere('slot.type = :type')
-      .setParameter('type', type)
-      .setParameter('id', userID)
-      .getRawMany();
+    // return await this.slotRepo
+    //   .createQueryBuilder('slot')
+    //   .select([
+    //     'slot.id as id',
+    //     'slot.date as date',
+    //     'slot.total as total',
+    //     'slot.remaining as remaining',
+    //   ])
+    //   .where('slot.date NOT IN ' + subQuery)
+    //   .andWhere('slot.type = :type')
+    //   .setParameter('type', type)
+    //   .setParameter('id', userID)
+    //   .getRawMany();
   }
+
+  getAllSlots = async (userID: string) => {
+    const entityManger = getManager();
+    return await entityManger.query(`
+      select *
+      from slot 
+      where date not in (
+        select slot.date
+        from faculty, selection, slot
+        where faculty.id = selection.facultyId and
+        slot.id = selection.slotId
+        and faculty.id = ${userID}
+      )
+    `);
+  };
 
   async selectSlot(
     faculty: Faculty,
@@ -77,17 +111,17 @@ export class FacultyService {
 
     // checking if faculty has previously selected slot on the same date.
     // --------------------------------------------------------------------
-    // if (
-    //   faculty.selections.find(
-    //     facSlot =>
-    //       facSlot.id === slotID ||
-    //       areDatesEqual(new Date(facSlot.date), new Date(slot.date)),
-    //   )
-    // )
-    //   return new SlotSelectionError(
-    //     'You have already selected a slot on this date',
-    //     slot.date,
-    //   );
+    if (
+      faculty.selections.find(
+        facSlot =>
+          facSlot.id === slotID ||
+          areDatesEqual(new Date(facSlot.date), new Date(slot.date)),
+      )
+    )
+      return new SlotSelectionError(
+        'You have already selected a slot on this date',
+        slot.date,
+      );
 
     // check if the faculty has already selected max slot, based on designation
     // --------------------------------------------------------------------
@@ -145,7 +179,7 @@ export class FacultyService {
       return resp;
     } catch (e) {
       console.log(e);
-      throw new InternalServerErrorException("Ooops!!Something went wrong!!!");
+      throw new InternalServerErrorException('Ooops!!Something went wrong!!!');
     }
   }
 }

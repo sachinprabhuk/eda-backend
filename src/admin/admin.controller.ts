@@ -37,36 +37,33 @@ export class AdminController {
   }
 
   @Delete('faculty')
-  async deleteFaculty(@Body('facultyID') facID: string): Promise<Faculty> {
+  deleteFaculty(@Body('facultyID') facID: string): Promise<Faculty> {
     return this.adminService.deleteFaculty(facID);
   }
 
   @Delete('slot')
-  async deleteSlot(@Body('slotID') slotID: string): Promise<Slot> {
+  deleteSlot(@Body('slotID') slotID: string): Promise<Slot> {
     return this.adminService.deleteSlot(slotID);
   }
 
-  @Get('pending-faculty')
-  async pendingFaculty(@Query('designation') desig: number): Promise<Faculty[]> {
-    return this.adminService.pendingFaculty(desig);
-  }
-
   @Get('report-meta')
-  async reportMeta(): Promise<any> {
+  reportMeta(): Promise<any> {
     return this.adminService.reportMeta();
   }
 
   @Get('report')
-  async report(
-    @Query('type') type: string,
-    @Query('date') date: Date,
-  ): Promise<any> {
+  report(@Query('type') type: string, @Query('date') date: Date): Promise<any> {
     return this.adminService.report(date, type);
+  }
+
+  @Get('pending-faculty')
+  pendingFaculty(@Query('designation') desig: number): Promise<Faculty[]> {
+    return this.adminService.pendingFaculty(desig);
   }
 
   // for tests
   @Delete('all-test')
-  async deleteAll(): Promise<string> {
+  deleteAll(): Promise<string> {
     return this.adminService.clearAll();
   }
 

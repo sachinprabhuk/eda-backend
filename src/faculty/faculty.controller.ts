@@ -29,6 +29,13 @@ export class FacultyController {
     return this.facultyService.getSlots(type, user.username);
   }
 
+  @Get('all-slots')
+  async getAllSlots(
+    @Body('user') user: JWTdecoded,
+  ): Promise<slotsResp[]> {
+    return this.facultyService.getAllSlots(user.username);
+  }
+
   @Post('select-slots')
   async selectSlot(
     @Body('user') user: JWTdecoded,

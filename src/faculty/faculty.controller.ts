@@ -11,8 +11,11 @@ import {
 import { FacultyAuthGuard } from '../auth/auth.guard';
 import { FacultyService } from './faculty.service';
 import { JWTdecoded } from '../shared/index.dto';
-import { Slot } from '../entities/Slot.entity';
-import { slotsResp, SlotSelectionError, SlotSelectionResp } from './faculty.dto';
+import {
+  slotsResp,
+  SlotSelectionError,
+  SlotSelectionResp,
+} from './faculty.dto';
 
 @Controller('api/faculty')
 @UseGuards(FacultyAuthGuard)
@@ -30,9 +33,7 @@ export class FacultyController {
   }
 
   @Get('all-slots')
-  async getAllSlots(
-    @Body('user') user: JWTdecoded,
-  ): Promise<slotsResp[]> {
+  async getAllSlots(@Body('user') user: JWTdecoded): Promise<slotsResp[]> {
     return this.facultyService.getAllSlots(user.username);
   }
 

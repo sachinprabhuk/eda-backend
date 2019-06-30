@@ -1,17 +1,9 @@
-import {
-  Injectable,
-  HttpException,
-  HttpStatus,
-  BadRequestException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Repository, In, Not, getManager } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
 import { JWTdecoded } from '../shared/index.dto';
-import { Slot } from '../entities/Slot.entity';
-import { Faculty } from '../entities/Faculty.entity';
-import { SlotLim } from '../entities/SlotLim.entity';
+import { Slot, Faculty, SlotLim } from '../entities';
 import {
   slotsResp,
   SlotSelectionError,

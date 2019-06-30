@@ -1,6 +1,11 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, getManager } from 'typeorm';
-import { HttpException, HttpStatus, BadRequestException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  BadRequestException,
+  Injectable,
+} from '@nestjs/common';
 
 import { Faculty } from '../entities/Faculty.entity';
 import { Admin } from '../entities/Admin.entity';
@@ -9,6 +14,7 @@ import { SlotDTO, FacultyDTO } from '../shared/index.dto';
 import { SlotLim } from '../entities/SlotLim.entity';
 import { SQLdate } from '../shared/tools';
 
+@Injectable()
 export class AdminService {
   constructor(
     @InjectRepository(Admin)

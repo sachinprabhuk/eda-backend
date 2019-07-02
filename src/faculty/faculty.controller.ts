@@ -27,15 +27,13 @@ export class FacultyController {
     @Query('type') type: string,
     @Body('user') user: JWTdecoded,
   ): Promise<slotsResp[]> {
-    if (!type.match(/^(morn|aft)$/))
-      throw new BadRequestException('Invalid type field!!');
-    return this.facultyService.getSlots(type, user.username);
-  }
-
-  @Get('all-slots')
-  async getAllSlots(@Body('user') user: JWTdecoded): Promise<slotsResp[]> {
     return this.facultyService.getAllSlots(user.username);
   }
+
+  // @Get('all-slots')
+  // async getAllSlots(@Body('user') user: JWTdecoded): Promise<slotsResp[]> {
+  //   return this.facultyService.getAllSlots(user.username);
+  // }
 
   @Post('select-slots')
   async selectSlot(

@@ -29,49 +29,50 @@ export class FacultyService {
     private readonly slotLimRepo: Repository<SlotLim>,
   ) {}
 
-  async getSlots(type: string, userID: string): Promise<slotsResp[]> {
-    const entityManger = getManager();
-    return await entityManger.query(`
-      select *
-      from slot 
-      where date not in (
-        select slot.date
-        from faculty, selection, slot
-        where faculty.id = selection.facultyId and
-        slot.id = selection.slotId
-        and faculty.id = ${userID}
-      )
-    `);
-    // const allotedSlots = await this.facultyRepo.findOne({
-    //   relations: ['selections'],
-    //   where: { id: userID },
-    // });
+  // async getSlots(type: string, userID: string): Promise<slotsResp[]> {
+  //   const entityManger = getManager();
+  //   return await entityManger.query(`
+  //     select *
+  //     from slot
+  //     where date not in (
+  //       select slot.date
+  //       from faculty, selection, slot
+  //       where faculty.id = selection.facultyId and
+  //       slot.id = selection.slotId
+  //       and faculty.id = ${userID}
+  //     ) and
+  //     remaining > 0
+  //   `);
+  // const allotedSlots = await this.facultyRepo.findOne({
+  //   relations: ['selections'],
+  //   where: { id: userID },
+  // });
 
-    // // @ts-ignore
-    // return allotedSlots;
-    // const subQuery = await this.facultyRepo
-    //   .createQueryBuilder()
-    //   .subQuery()
-    //   .from(Faculty, 'faculty')
-    //   .leftJoinAndSelect('faculty.selections', 'selections')
-    //   .select('selections.date')
-    //   .andWhere('faculty.id = :id')
-    //   .getQuery();
+  // // @ts-ignore
+  // return allotedSlots;
+  // const subQuery = await this.facultyRepo
+  //   .createQueryBuilder()
+  //   .subQuery()
+  //   .from(Faculty, 'faculty')
+  //   .leftJoinAndSelect('faculty.selections', 'selections')
+  //   .select('selections.date')
+  //   .andWhere('faculty.id = :id')
+  //   .getQuery();
 
-    // return await this.slotRepo
-    //   .createQueryBuilder('slot')
-    //   .select([
-    //     'slot.id as id',
-    //     'slot.date as date',
-    //     'slot.total as total',
-    //     'slot.remaining as remaining',
-    //   ])
-    //   .where('slot.date NOT IN ' + subQuery)
-    //   .andWhere('slot.type = :type')
-    //   .setParameter('type', type)
-    //   .setParameter('id', userID)
-    //   .getRawMany();
-  }
+  // return await this.slotRepo
+  //   .createQueryBuilder('slot')
+  //   .select([
+  //     'slot.id as id',
+  //     'slot.date as date',
+  //     'slot.total as total',
+  //     'slot.remaining as remaining',
+  //   ])
+  //   .where('slot.date NOT IN ' + subQuery)
+  //   .andWhere('slot.type = :type')
+  //   .setParameter('type', type)
+  //   .setParameter('id', userID)
+  //   .getRawMany();
+  // }
 
   getAllSlots = async (userID: string) => {
     const entityManger = getManager();
@@ -84,7 +85,8 @@ export class FacultyService {
         where faculty.id = selection.facultyId and
         slot.id = selection.slotId
         and faculty.id = ${userID}
-      )
+      ) and
+      remaining > 0
     `);
   };
 
@@ -103,17 +105,17 @@ export class FacultyService {
 
     // checking if faculty has previously selected slot on the same date.
     // --------------------------------------------------------------------
-    if (
-      faculty.selections.find(
-        facSlot =>
-          facSlot.id === slotID ||
-          areDatesEqual(new Date(facSlot.date), new Date(slot.date)),
-      )
-    )
-      return new SlotSelectionError(
-        'You have already selected a slot on this date',
-        slot.date,
-      );
+    // if (
+    //   faculty.selections.find(
+    //     facSlot =>
+    //       facSlot.id === slotID ||
+    //       areDatesEqual(new Date(facSlot.date), new Date(slot.date)),
+    //   )
+    // )
+    //   return new SlotSelectionError(
+    //     'You have already selected a slot on this date',
+    //     slot.date,
+    //   );
 
     // check if the faculty has already selected max slot, based on designation
     // --------------------------------------------------------------------

@@ -5,15 +5,19 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, getManager } from 'typeorm';
+import { Repository, getManager, Not, In, MoreThan, Raw } from 'typeorm';
 
-import { Slot } from '../../entities';
+import { Slot, Faculty } from '../../entities';
+import { FacultyDTO } from '../../shared/index.dto';
+import { pendingFaculty } from '../admin.dto';
 
 @Injectable()
 export class GetAdminService {
   constructor(
     @InjectRepository(Slot)
     private readonly slotRepo: Repository<Slot>,
+    @InjectRepository(Faculty)
+    private readonly facultyRepo: Repository<Faculty>,
   ) {}
 
   async getSelections(): Promise<any> {
@@ -103,7 +107,7 @@ export class GetAdminService {
     }
   }
 
-  async pendingFaculty(designation: number): Promise<any> {
+  async pendingFaculty(designation: number): Promise<pendingFaculty[]> {
     const query = `
       select F.id, F.name, F.branch, F.email
       from faculty F, selection S
@@ -118,5 +122,53 @@ export class GetAdminService {
     `;
     const entityManager = getManager();
     return await entityManager.query(query);
+  }
+
+  async autoAllocate(): Promise<void> {
+    //   const query = `
+    //   select F.id, F.name, F.branch, F.email
+    //   from faculty F, selection S
+    //   where F.id = S.facultyId
+    //   group by F.id, F.name, F.branch, F.designation
+    //   having count(*) < (
+    //     select maximum
+    //     from slot_lim
+    //     where designation = F.designation
+    //   )
+    // `;
+    const allFaculty = await this.facultyRepo.find({
+      relations: ['selections', 'slotLim'],
+    });
+    const pendingFacs: Faculty[] = allFaculty.filter(
+      fac => fac.selections.length < fac.slotLim.maximum,
+    );
+
+    // for allocating slots to faculties in sequential oreder.
+    await pendingFacs.reduce(
+      async (prevPromise: Promise<Faculty | void>, currFaculty: Faculty) => {
+        await prevPromise;
+
+        const selectedSlotIDs = currFaculty.selections.map(
+          slot => `${slot.id}`,
+        );
+        selectedSlotIDs.push('');
+
+        const toAllocate: Slot[] = await this.slotRepo.find({
+          where: {
+            id: Not(In(selectedSlotIDs)),
+            remaining: MoreThan(0),
+          },
+          take: currFaculty.slotLim.maximum - currFaculty.selections.length,
+        });
+
+        toAllocate.forEach(slot => {
+          slot.remaining -= 1;
+          currFaculty.selections.push(slot);
+        });
+
+        return await this.facultyRepo.save(currFaculty);
+      },
+      Promise.resolve(),
+    );
   }
 }

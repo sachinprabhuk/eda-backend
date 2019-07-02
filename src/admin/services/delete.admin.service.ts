@@ -3,6 +3,7 @@ import {
   Injectable,
   HttpException,
   HttpStatus,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, getManager } from 'typeorm';
@@ -19,13 +20,13 @@ export class DeleteAdminService {
     private readonly slotRepo: Repository<Slot>,
   ) {}
 
-  async deleteFaculty(facID: string): Promise<Faculty> {
+  async deleteFaculty(facID: string): Promise<void> {
     try {
       const faculty = await this.facultyRepo.findOne({
         where: { id: facID },
         relations: ['selections'],
       });
-      if (!faculty) throw new BadRequestException('Invalid faculty id');
+      if (!faculty) throw new NotFoundException('Invalid faculty id');
 
       await getManager().transaction(async entityManager => {
         await entityManager.remove(faculty);
@@ -36,8 +37,6 @@ export class DeleteAdminService {
           }),
         );
       });
-
-      return faculty;
     } catch (e) {
       if (e instanceof HttpException) throw e;
       throw new HttpException(
@@ -47,17 +46,48 @@ export class DeleteAdminService {
     }
   }
 
-  async deleteSlot(slotID: string): Promise<Slot> {
+  async deleteSlot(slotID: string): Promise<void> {
     const slot: Slot = await this.slotRepo.findOne({ id: slotID });
-    if (!slot) throw new BadRequestException('Invalid slot id');
+    if (!slot) throw new NotFoundException('Invalid slot id');
     try {
       await this.slotRepo.delete(slot);
-      return slot;
     } catch (e) {
       throw new HttpException(
         'Error while deleting the slot',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  async deleteSlots(slotIDs: string[]): Promise<string[]> {
+    // resp will have all the ids which couldnt be deleted
+    const resp: string[] = [];
+    await Promise.all(
+      slotIDs.map(async id => {
+        try {
+          await this.deleteSlot(id);
+        } catch (e) {
+          resp.push(id);
+        }
+        Promise.resolve();
+      }),
+    );
+    return resp;
+  }
+
+  async deleteFaculties(facIDs: string[]): Promise<string[]> {
+    // resp will have all the ids which couldnt be deleted
+    const resp: string[] = [];
+    await Promise.all(
+      facIDs.map(async id => {
+        try {
+          await this.deleteFaculty(id);
+        } catch (e) {
+          resp.push(id);
+        }
+        Promise.resolve();
+      }),
+    );
+    return resp;
   }
 }

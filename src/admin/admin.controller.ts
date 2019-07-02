@@ -8,8 +8,13 @@ import {
   UseInterceptors,
   UploadedFile,
   UseGuards,
+  Res,
+  HttpStatus,
+  Headers,
+  HttpCode,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 
 import { AdminAuthGuard } from '../auth/auth.guard';
 import { SlotDTO, FacultyDTO } from '../shared/index.dto';
@@ -20,6 +25,7 @@ import {
   DeleteAdminService,
   UtilAdminService,
 } from './services';
+import { pendingFaculty } from './admin.dto';
 @Controller('api/admin')
 @UseGuards(AdminAuthGuard)
 export class AdminController {
@@ -36,6 +42,39 @@ export class AdminController {
     return this.getService.getSelections();
   }
 
+  @Get('report')
+  report(@Query('type') type: string, @Query('date') date: Date): Promise<any> {
+    return this.getService.report(date, type);
+  }
+
+  @Get('report-meta')
+  reportMeta(): Promise<any> {
+    return this.getService.reportMeta();
+  }
+
+  @Get('pending-faculty')
+  pendingFaculty(
+    @Query('designation') desig: number,
+  ): Promise<pendingFaculty[]> {
+    return this.getService.pendingFaculty(desig);
+  }
+
+  @Get('slots')
+  getSlots(): Promise<Slot[]> {
+    return this.utilService.getSlots();
+  }
+
+  @Get('auto-allocate')
+  autoAllocate(): Promise<void> {
+    return this.getService.autoAllocate();
+  }
+
+  @Post('slots')
+  @UseInterceptors(FileInterceptor('file'))
+  addSlots(@UploadedFile() file: Express.Multer.File): Promise<Slot[]> {
+    return this.postService.addSlots(file);
+  }
+
   @Post('slot')
   addSlot(@Body('slot') slot: SlotDTO): Promise<Slot> {
     return this.postService.addSlot(slot);
@@ -46,51 +85,46 @@ export class AdminController {
     return this.postService.addFaculty(faculty);
   }
 
-  @Delete('faculty')
-  deleteFaculty(@Body('facultyID') facID: string): Promise<Faculty> {
-    return this.deleteService.deleteFaculty(facID);
-  }
-
-  @Delete('slot')
-  deleteSlot(@Body('slotID') slotID: string): Promise<Slot> {
-    return this.deleteService.deleteSlot(slotID);
-  }
-
-  @Get('report-meta')
-  reportMeta(): Promise<any> {
-    return this.getService.reportMeta();
-  }
-
-  @Get('report')
-  report(@Query('type') type: string, @Query('date') date: Date): Promise<any> {
-    return this.getService.report(date, type);
-  }
-
-  @Get('pending-faculty')
-  pendingFaculty(@Query('designation') desig: number): Promise<Faculty[]> {
-    return this.getService.pendingFaculty(desig);
-  }
-
   @Post('faculties')
   @UseInterceptors(FileInterceptor('file'))
   addFaculties(@UploadedFile() file: Express.Multer.File): Promise<Faculty[]> {
     return this.postService.addFaculties(file);
   }
 
-  @Post('add-slots')
-  @UseInterceptors(FileInterceptor('file'))
-  addSlots(@UploadedFile() file: Express.Multer.File): Promise<Slot[]> {
-    return this.postService.addSlots(file);
+  @Delete('slots')
+  @HttpCode(204)
+  async deleteSlots(@Body('slotIDs') slotIDs: string[], @Res() res: Response) {
+    const resp = await this.deleteService.deleteSlots(slotIDs);
+    if (resp.length === 0) res.status(HttpStatus.NO_CONTENT).send();
+    else res.status(HttpStatus.BAD_REQUEST).json(resp);
+  }
+
+  @Delete('faculties')
+  @HttpCode(204)
+  async deleteFaculties(
+    @Body('facultyIDs') facultyIDs: string[],
+    @Res() res: Response,
+  ) {
+    const resp = await this.deleteService.deleteFaculties(facultyIDs);
+    if (resp.length === 0) res.status(HttpStatus.NO_CONTENT).send();
+    else res.status(HttpStatus.BAD_REQUEST).json(resp);
+  }
+
+  @Delete('faculty')
+  @HttpCode(204)
+  deleteFaculty(@Body('facultyID') facID: string): Promise<void> {
+    return this.deleteService.deleteFaculty(facID);
+  }
+
+  @Delete('slot')
+  @HttpCode(204)
+  deleteSlot(@Body('slotID') slotID: string): Promise<void> {
+    return this.deleteService.deleteSlot(slotID);
   }
 
   // for tests
   @Delete('all-test')
   deleteAll(): Promise<string> {
     return this.utilService.clearAll();
-  }
-
-  @Get('slots')
-  getSlots(): Promise<Slot[]> {
-    return this.utilService.getSlots();
   }
 }

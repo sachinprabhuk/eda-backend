@@ -12,6 +12,7 @@ import { GetAdminService } from './services/get.admin.service';
 import { PostAdminService } from './services/post.admin.service';
 import { UtilAdminService } from './services/util.admin.service';
 import { MulterModule } from '@nestjs/platform-express';
+import { MailerModule, HandlebarsAdapter } from '@nest-modules/mailer';
 
 @Module({
   imports: [
@@ -19,6 +20,19 @@ import { MulterModule } from '@nestjs/platform-express';
     AuthModule,
     MulterModule.register({
       dest: './uploads',
+    }),
+    MailerModule.forRoot({
+      transport: `smtps://${process.env.MAIL_ADDR}:${process.env.MAIL_PWD}@${process.env.MAIL_SERVER_ADDR}`,
+      defaults: {
+        from: `'sachin prabhu' <${process.env.MAIL_ADDR}>`,
+      },
+      template: {
+        dir: __dirname + '/emailTemplates',
+        adapter: new HandlebarsAdapter(),
+        options: {
+          strict: true,
+        },
+      },
     }),
   ],
   controllers: [AdminController],

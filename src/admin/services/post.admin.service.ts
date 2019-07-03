@@ -7,6 +7,7 @@ import {
 import { readFile, utils, WorkBook, SSF } from 'xlsx';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { MailerService } from '@nest-modules/mailer';
 
 import { SlotDTO, FacultyDTO } from '../../shared/index.dto';
 import { Slot, Faculty, SlotLim } from '../../entities';
@@ -20,6 +21,7 @@ export class PostAdminService {
     private readonly slotRepo: Repository<Slot>,
     @InjectRepository(SlotLim)
     private readonly limRepo: Repository<SlotLim>,
+    private readonly mailService: MailerService,
   ) {}
 
   async addSlot({ date, type, total }: SlotDTO): Promise<Slot> {
@@ -100,5 +102,38 @@ export class PostAdminService {
     });
 
     return await Promise.all(parsedSlotArray.map(slot => this.addSlot(slot)));
+  }
+
+  async sendMails(facultyIDs: string[]): Promise<Faculty[]> {
+    const resp: Faculty[] = [];
+    await Promise.all(
+      facultyIDs.map(async id => {
+        const faculty = await this.facultyRepo.findOne({
+          relations: ['selections'],
+          where: { id },
+        });
+
+        const emailAddr =
+          process.env.MODE === 'dev' ? process.env.MAIL_ADDR : faculty.email;
+
+        try {
+          await this.mailService.sendMail({
+            to: emailAddr,
+            subject: `email regarding your slot selection for exam duty for the academic year 2019-20`,
+            // html: `<b>welcome ${emailAddr}</b>`,
+            template: 'selectionList',
+            context: {
+              name: faculty.name,
+              selections: faculty.selections,
+            },
+          });
+        } catch (e) {
+          console.log(e);
+          resp.push(faculty);
+        }
+        Promise.resolve();
+      }),
+    );
+    return resp;
   }
 }

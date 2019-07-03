@@ -91,6 +91,11 @@ export class AdminController {
     return this.postService.addFaculties(file);
   }
 
+  @Post('send-mails')
+  sendMails(@Body('facultyIDs') facultyIDs: string[]): Promise<Faculty[]> {
+    return this.postService.sendMails(facultyIDs);
+  }
+
   @Delete('slots')
   @HttpCode(204)
   async deleteSlots(@Body('slotIDs') slotIDs: string[], @Res() res: Response) {

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<style>
+		table {
+			font-family: arial, sans-serif;
+			border-collapse: collapse;
+			width: 250px;
+		}
+
+		td,
+		th {
+			border: 1px solid #eeeeee;
+			text-align: left;
+			padding: 8px;
+		}
+
+		tr:nth-child(even) {
+			background-color: #eeeeee;
+		}
+	</style>
+	<title>Document</title>
+</head>
+
+<body>
+	<h3>Hello {{name}}, these are your selections for the exam duty
+		for the academic year 2019-20</h3>
+
+	<table>
+		<thead>
+			<tr>
+				<th>Type</th>
+				<th>Date</th>
+			</tr>
+		</thead>
+		<tbody>
+			{{#each selections}}
+			<tr>
+				<td>{{type}}</td>
+				<td>{{date}}</td>
+			</tr>
+			{{/each}}
+		</tbody>
+	</table>
+</body>
+
+</html>

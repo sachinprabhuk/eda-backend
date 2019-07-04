@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Delete, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Delete, Req, Query } from '@nestjs/common';
 import { Request } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDTO } from './auth.dto';
@@ -15,7 +15,7 @@ export class AuthController {
   }
 
   @Get('auth-status')
-  isAuth(@Req() req: Request): Promise<JWTdecoded | Faculty> {
-    return this.authService.isAuth(req.headers.authorization);
+  isAuth(@Req() req: Request, @Query('admin') admin: boolean): Promise<JWTdecoded | Faculty> {
+    return this.authService.isAuth(req.headers.authorization, admin);
   }
 }

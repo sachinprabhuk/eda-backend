@@ -8,7 +8,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, getManager, Not, In, MoreThan, Raw } from 'typeorm';
 
 import { Slot, Faculty } from '../../entities';
-import { FacultyDTO } from '../../shared/index.dto';
 import { pendingFaculty } from '../admin.dto';
 
 @Injectable()

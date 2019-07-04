@@ -71,11 +71,13 @@ export class AuthService {
       : this.facultyLogin(loginDTO);
 	}
 	
-	async isAuth(token: string): Promise<JWTdecoded | Faculty> {
+	async isAuth(token: string, shouldBeAdmin: boolean): Promise<JWTdecoded | Faculty> {
 		try {
       const decoded: JWTdecoded = jwt.verify(token, process.env.SECRETE_KEY) as JWTdecoded;
 			if(decoded.hasOwnProperty('username') && decoded.hasOwnProperty("admin")) {
         const { username: id, admin } = decoded;
+        if(admin !== shouldBeAdmin)
+          throw new Error();
         // faculty situation
         if(!admin) {
           const faculty = await this.facultyRepo.findOne({

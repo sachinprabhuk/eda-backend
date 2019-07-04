@@ -49,7 +49,6 @@ export class PostAdminService {
   async addFaculty({
     id,
     name,
-    password,
     branch,
     contact,
     designation,
@@ -61,7 +60,7 @@ export class PostAdminService {
     const faculty = new Faculty();
     faculty.id = id;
     faculty.name = name;
-    faculty.password = password;
+    faculty.password = contact;
     faculty.branch = branch;
     faculty.contact = contact;
     faculty.slotLim = slotLim;
@@ -69,6 +68,7 @@ export class PostAdminService {
     try {
       await this.facultyRepo.insert(faculty);
       delete faculty.slotLim;
+      delete faculty.password;
       return faculty;
     } catch (e) {
       throw new HttpException(

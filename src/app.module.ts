@@ -8,13 +8,16 @@ import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import { FacultyModule } from './faculty/faculty.module';
 
+console.log(process.env.DB_NAME);
+console.log(process.env.DB_USERNAME);
+console.log(process.env.DB_PASSWORD);
+
 @Module({
   imports: [
     TypeOrmModule.forRoot({
-      name: "default",
+      name: 'default',
       type: 'mysql',
-      host: 'localhost',
-      port: 3306,
+      host: process.env.DB_HOST,
       username: process.env.DB_USERNAME,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME,
@@ -23,7 +26,7 @@ import { FacultyModule } from './faculty/faculty.module';
     }),
     AuthModule,
     AdminModule,
-    FacultyModule
+    FacultyModule,
   ],
   controllers: [AppController],
   providers: [AppService],

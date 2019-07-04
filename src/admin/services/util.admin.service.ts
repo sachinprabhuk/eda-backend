@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Slot, Faculty } from 'src/entities';
+import { Slot, Faculty } from '../../entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 

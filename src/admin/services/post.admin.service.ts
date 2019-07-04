@@ -79,7 +79,7 @@ export class PostAdminService {
   }
 
   async addFaculties(file: Express.Multer.File): Promise<Faculty[]> {
-    const workBook: WorkBook = readFile(`./uploads/${file.filename}`);
+    const workBook: WorkBook = readFile(`/tmp/${file.filename}`);
     const firstSheetName = workBook.SheetNames[0];
     const sheet = workBook.Sheets[firstSheetName];
     const facultyArray: FacultyDTO[] = utils.sheet_to_json(sheet);
@@ -90,7 +90,7 @@ export class PostAdminService {
   }
 
   async addSlots(file: Express.Multer.File): Promise<Slot[]> {
-    const workBook: WorkBook = readFile(`./uploads/${file.filename}`);
+    const workBook: WorkBook = readFile(`/tmp/${file.filename}`);
     const firstSheetName = workBook.SheetNames[0];
     const sheet = workBook.Sheets[firstSheetName];
     const slotArray: SlotDTO[] = utils.sheet_to_json(sheet);
@@ -114,7 +114,9 @@ export class PostAdminService {
         });
 
         const emailAddr =
-          process.env.MODE === 'dev' ? process.env.MAIL_ADDR : faculty.email;
+          process.env.NODE_ENV === 'development'
+            ? process.env.MAIL_ADDR
+            : faculty.email;
 
         try {
           await this.mailService.sendMail({

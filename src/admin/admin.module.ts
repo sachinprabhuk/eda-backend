@@ -19,7 +19,7 @@ import { MailerModule, HandlebarsAdapter } from '@nest-modules/mailer';
     TypeOrmModule.forFeature([Admin, Faculty, Slot, SlotLim]),
     AuthModule,
     MulterModule.register({
-      dest: './uploads',
+      dest: '/tmp',
     }),
     MailerModule.forRoot({
       transport: `smtps://${process.env.MAIL_ADDR}:${process.env.MAIL_PWD}@${process.env.MAIL_SERVER_ADDR}`,

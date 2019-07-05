@@ -57,6 +57,9 @@ export class PostAdminService {
     const slotLim = await this.limRepo.findOne({ designation });
     if (!slotLim) throw new BadRequestException('Invalid designation!!');
 
+    if (await this.facultyRepo.findOne({ id }))
+      throw new BadRequestException('Duplicate faculty id!');
+
     const faculty = new Faculty();
     faculty.id = id;
     faculty.name = name;

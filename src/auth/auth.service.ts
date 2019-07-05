@@ -22,7 +22,10 @@ export class AuthService {
       password,
     });
     if (!user)
-			throw new HttpException('invalid username or password!', HttpStatus.UNAUTHORIZED);
+      throw new HttpException(
+        'invalid username or password!',
+        HttpStatus.UNAUTHORIZED,
+      );
     else {
       const token = jwt.sign(
         {
@@ -32,20 +35,23 @@ export class AuthService {
         process.env.SECRETE_KEY,
         { expiresIn: '24h' },
       );
-      return token
+      return token;
     }
   }
 
   async facultyLogin({ username, password, admin }: LoginDTO): Promise<any> {
-
     const user = await this.facultyRepo.findOne({
       where: {
-        id: username, password: password
+        id: username,
+        password: password,
       },
-      relations: ["selections", "slotLim"]
-    })
-		if (!user) 
-			throw new HttpException('invalid username or password!', HttpStatus.UNAUTHORIZED);
+      relations: ['selections', 'slotLim'],
+    });
+    if (!user)
+      throw new HttpException(
+        'invalid username or password!',
+        HttpStatus.UNAUTHORIZED,
+      );
     else {
       const token = jwt.sign(
         {
@@ -56,44 +62,52 @@ export class AuthService {
         { expiresIn: '1h' },
       );
       return {
-        token, 
+        token,
         faculty: {
-          id: user.id, name: user.name,
-          selections: user.selections, slotLim: user.slotLim
-        }
+          id: user.id,
+          name: user.name,
+          selections: user.selections,
+          slotLim: user.slotLim,
+        },
       };
     }
-	}
+  }
 
   login(loginDTO: LoginDTO): Promise<string> {
     return loginDTO.admin
       ? this.adminLogin(loginDTO)
       : this.facultyLogin(loginDTO);
-	}
-	
-	async isAuth(token: string, shouldBeAdmin: boolean): Promise<JWTdecoded | Faculty> {
-		try {
-      const decoded: JWTdecoded = jwt.verify(token, process.env.SECRETE_KEY) as JWTdecoded;
-			if(decoded.hasOwnProperty('username') && decoded.hasOwnProperty("admin")) {
+  }
+
+  async isAuth(
+    token: string,
+    shouldBeAdmin: boolean,
+  ): Promise<JWTdecoded | Faculty> {
+    try {
+      const decoded: JWTdecoded = jwt.verify(
+        token,
+        process.env.SECRETE_KEY,
+      ) as JWTdecoded;
+      if (
+        decoded.hasOwnProperty('username') &&
+        decoded.hasOwnProperty('admin')
+      ) {
         const { username: id, admin } = decoded;
-        if(admin !== shouldBeAdmin)
-          throw new Error();
+
+        if (String(admin) !== String(shouldBeAdmin)) throw new Error();
         // faculty situation
-        if(!admin) {
+        if (!admin) {
           const faculty = await this.facultyRepo.findOne({
             where: { id },
-            relations: ["selections", "slotLim"]
-          })
+            relations: ['selections', 'slotLim'],
+          });
           delete faculty.password;
           return faculty;
-        }
-        else // admin situation
-          return decoded
+        } // admin situation
+        else return decoded;
       }
-			throw new Error();
-		}catch(e) {
-			throw new HttpException('invalid token!', HttpStatus.UNAUTHORIZED);
-		}
-	}
-
+    } catch (e) {
+      throw new HttpException('invalid token!', HttpStatus.UNAUTHORIZED);
+    }
+  }
 }

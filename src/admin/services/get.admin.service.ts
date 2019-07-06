@@ -170,4 +170,12 @@ export class GetAdminService {
       Promise.resolve(),
     );
   }
+
+  async getFaculties(): Promise<Faculty[]> {
+    return await this.facultyRepo.find({
+      relations: ["slotLim", "selections"],
+      select: ["name", "id", "branch", "slotLim", "selections", "contact"],
+    })
+  }
+
 }

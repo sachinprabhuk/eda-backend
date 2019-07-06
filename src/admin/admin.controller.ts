@@ -59,6 +59,11 @@ export class AdminController {
     return this.getService.pendingFaculty(desig);
   }
 
+  @Get('faculties')
+  getFaculties(): Promise<Faculty[]> {
+    return this.getService.getFaculties();
+  }
+
   @Get('slots')
   getSlots(): Promise<Slot[]> {
     return this.utilService.getSlots();

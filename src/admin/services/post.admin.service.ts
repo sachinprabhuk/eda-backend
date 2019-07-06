@@ -87,6 +87,13 @@ export class PostAdminService {
     const sheet = workBook.Sheets[firstSheetName];
     const facultyArray: FacultyDTO[] = utils.sheet_to_json(sheet);
 
+    facultyArray.reduce((acc, curr) => {
+      if(acc.has(curr.id))
+        throw new BadRequestException("Invalid file!!duplicate id's found");
+      acc.add(curr.id);
+      return acc;
+    }, new Set())
+
     return await Promise.all(
       facultyArray.map(faculty => this.addFaculty(faculty)),
     );

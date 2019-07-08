@@ -10,7 +10,6 @@ import {
   UseGuards,
   Res,
   HttpStatus,
-  Headers,
   HttpCode,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -66,7 +65,7 @@ export class AdminController {
 
   @Get('slots')
   getSlots(): Promise<Slot[]> {
-    return this.utilService.getSlots();
+    return this.getService.getSlots();
   }
 
   @Get('auto-allocate')

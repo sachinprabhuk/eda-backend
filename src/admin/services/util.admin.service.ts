@@ -12,10 +12,6 @@ export class UtilAdminService {
     private readonly slotRepo: Repository<Slot>,
   ) {}
 
-  async getSlots(): Promise<Slot[]> {
-    return await this.slotRepo.find();
-  }
-
   async clearAll(): Promise<string> {
     await this.slotRepo.delete({});
     await this.facultyRepo.delete({});

@@ -19,6 +19,12 @@ export class GetAdminService {
     private readonly facultyRepo: Repository<Faculty>,
   ) {}
 
+  async getSlots(): Promise<Slot[]> {
+    return await this.slotRepo.find({
+      select: ['id', 'type', 'date', 'total', 'remaining'],
+    });
+  }
+
   async getSelections(): Promise<any> {
     const res: any[] = await this.slotRepo
       .createQueryBuilder('slot')
@@ -173,9 +179,7 @@ export class GetAdminService {
 
   async getFaculties(): Promise<Faculty[]> {
     return await this.facultyRepo.find({
-      relations: ["slotLim", "selections"],
-      select: ["name", "id", "branch", "slotLim", "selections", "contact"],
-    })
+      relations: ['slotLim', 'selections'],
+    });
   }
-
 }

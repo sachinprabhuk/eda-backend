@@ -26,15 +26,17 @@ export class PostAdminService {
 
   async addSlot({ date, type, total }: SlotDTO): Promise<Slot> {
     date = new Date(date);
-
+    console.log(date);
     const slot = new Slot();
     slot.total = total;
     slot.date = date;
     slot.remaining = total;
     slot.type = type;
     try {
-      if (await this.slotRepo.findOne({ date, type }))
+      if (await this.slotRepo.findOne({ date, type })) {
         throw new BadRequestException('Duplicate entry!!');
+        console.log('heyy found');
+      }
       await this.slotRepo.insert(slot);
       return slot;
     } catch (e) {

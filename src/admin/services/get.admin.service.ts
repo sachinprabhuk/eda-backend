@@ -83,33 +83,33 @@ export class GetAdminService {
       if (!slotType || !slotType.match(/^(aft|morn)$/))
         throw new BadRequestException('Invalid type');
 
-      /* SQL way
-      -------------
+      // SQL way
+      // -------------
       let query = `
-        select F.id, F.name, F.designation, F.branch
+        select F.id, F.name, F.designation, F.branch, F.contact, F.email
         from faculty F, selection SEL, slot S
         where F.id = SEL.facultyId and
         SEL.slotId = S.id and 
-        S.date = '${SQLdate(date)}' and
+        S.date = '${date}' and
         S.type = '${slotType}'
       `;
       const entityManager = getManager();
       return await entityManager.query(query);
-      */
 
-      const currSlot = await this.slotRepo.findOne({
-        where: {
-          date: date,
-          type: slotType,
-        },
-        relations: ['faculties', 'slotLim'],
-      });
-      if (!currSlot) throw new Error();
-      return currSlot.faculties.map((el: any) => {
-        delete el.password, (el.designation = el.slotLim.designation);
-        delete el.slotLim;
-        return el;
-      });
+      // const currSlot = await this.slotRepo.findOne({
+      //   where: {
+      //     date: date,
+      //     type: slotType,
+      //   },
+      //   relations: ['faculties'],
+      // });
+      // if (!currSlot) throw new Error();
+      // return currSlot.faculties.map((el: any) => {
+      //   delete el.password;
+      //   el.designation = el.slotLim.designation;
+      //   delete el.slotLim;
+      //   return el;
+      // });
     } catch (e) {
       throw new HttpException(
         'Ooop! something went wrong!!',

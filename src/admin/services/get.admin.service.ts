@@ -64,6 +64,8 @@ export class GetAdminService {
         .groupBy('type')
         .getRawMany();
 
+      // there is a possibility that, object is empty
+      // or one of morn or aft is missing.
       return result.reduce((acc, curr) => {
         acc[curr['type']] = JSON.parse(curr['dates']);
         return acc;
@@ -97,13 +99,17 @@ export class GetAdminService {
 
       const currSlot = await this.slotRepo.findOne({
         where: {
-          date: new Date(date),
+          date: date,
           type: slotType,
         },
-        relations: ['faculties'],
+        relations: ['faculties', 'slotLim'],
       });
       if (!currSlot) throw new Error();
-      return currSlot.faculties;
+      return currSlot.faculties.map((el: any) => {
+        delete el.password, (el.designation = el.slotLim.designation);
+        delete el.slotLim;
+        return el;
+      });
     } catch (e) {
       throw new HttpException(
         'Ooop! something went wrong!!',

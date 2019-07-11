@@ -25,17 +25,15 @@ export class PostAdminService {
   ) {}
 
   async addSlot({ date, type, total }: SlotDTO): Promise<Slot> {
-    date = new Date(date);
-    console.log(date);
     const slot = new Slot();
     slot.total = total;
     slot.date = date;
     slot.remaining = total;
     slot.type = type;
+
     try {
       if (await this.slotRepo.findOne({ date, type })) {
         throw new BadRequestException('Duplicate entry!!');
-        console.log('heyy found');
       }
       await this.slotRepo.insert(slot);
       return slot;
@@ -90,11 +88,11 @@ export class PostAdminService {
     const facultyArray: FacultyDTO[] = utils.sheet_to_json(sheet);
 
     facultyArray.reduce((acc, curr) => {
-      if(acc.has(curr.id))
+      if (acc.has(curr.id))
         throw new BadRequestException("Invalid file!!duplicate id's found");
       acc.add(curr.id);
       return acc;
-    }, new Set())
+    }, new Set());
 
     return await Promise.all(
       facultyArray.map(faculty => this.addFaculty(faculty)),

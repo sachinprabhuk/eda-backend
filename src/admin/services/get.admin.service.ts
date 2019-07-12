@@ -120,10 +120,10 @@ export class GetAdminService {
 
   async pendingFaculty(designation: number): Promise<pendingFaculty[]> {
     const query = `
-      select F.id, F.name, F.branch, F.email
-      from faculty F, selection S
-      where F.id = S.facultyId and
-      F.designation=${designation}
+      select F.id, F.name, F.branch, F.email, F.contact
+      from faculty F left join selection S
+      on F.id = S.facultyId 
+      where F.designation=${designation}
       group by F.id, F.name, F.branch, F.designation
       having count(*) < (
         select maximum
